@@ -12,10 +12,10 @@ class ScoreCalculatorTest extends TestCase
     public function test_calcula_score_corretamente_para_email_corporativo_telefone_sp_e_nome_completo()
     {
         // Regras 
-        // - E-mail corporativo: 
-        // - E-mail .br: 
-        // - Nome completo: 
-        // - Telefone DDD São Paulo (11 a 19): 
+        //  E-mail corporativo
+        //  E-mail .br
+        //  Nome completo 
+        //  Telefone DDD São Paulo (11 a 19)
       
 
         $email = new Email('desenvolvedor@empresa.com.br');
