@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreContactRequest;
+use App\Domain\Contacts\Repositories\ContactRepositoryInterface;
 use App\Domain\Contacts\UseCases\CreateContactUseCase;
 use App\Domain\Contacts\UseCases\UpdateContactUseCase;
-use App\Domain\Contacts\Repositories\ContactRepositoryInterface;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreContactRequest;
+use App\Http\Resources\ContactResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,32 +19,36 @@ class ContactController extends Controller
 
     public function index(): JsonResponse
     {
-        return response()->json($this->repository->all());
+        $contacts = $this->repository->all();
+
+        return ContactResource::collection($contacts)->response();
     }
 
     public function store(StoreContactRequest $request, CreateContactUseCase $useCase): JsonResponse
     {
         $contact = $useCase->execute($request->validated());
 
-        return response()->json($contact, 201);
+        return (new ContactResource($contact))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function show(int $id): JsonResponse
-    {
-        $contact = $this->repository->findById($id);
+{
+    $contact = $this->repository->findById($id);
 
-        if (!$contact) {
-            return response()->json(['message' => 'Contacto não encontrado'], 404);
-        }
-
-        return response()->json($contact);
+    if (!$contact) {
+        return response()->json(['message' => 'Contacto não encontrado'], 404);
     }
+
+    return (new ContactResource($contact))->response();
+}
 
     public function update(Request $request, int $id, UpdateContactUseCase $useCase): JsonResponse
     {
         $contact = $useCase->execute($id, $request->all());
 
-        return response()->json($contact);
+        return (new ContactResource($contact))->response();
     }
 
     public function destroy(int $id): JsonResponse
