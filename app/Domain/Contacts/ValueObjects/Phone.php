@@ -29,4 +29,12 @@ class Phone
         $ddd = (int) substr($this->value, 0, 2);
         return $ddd >= 11 && $ddd <= 19;
     }
+
+    public function isFromSaoPaulo(): bool
+    {
+        $digits = preg_replace('/\D/', '', $this->value);
+
+        return str_starts_with($digits, '11');
+    }
+
 }

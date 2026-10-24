@@ -2,34 +2,35 @@
 
 namespace App\Domain\Contacts\Services;
 
+use App\Domain\Contacts\Services\Rules\CorporateEmailRule;
+use App\Domain\Contacts\Services\Rules\FullNameRule;
+use App\Domain\Contacts\Services\Rules\ScoreRuleInterface;
+use App\Domain\Contacts\Services\Rules\SpPhoneRule;
 use App\Domain\Contacts\ValueObjects\Email;
 use App\Domain\Contacts\ValueObjects\Phone;
 
 class ScoreCalculator
 {
+    /**
+     * @var array<ScoreRuleInterface>
+     */
+    private array $rules;
+
+    public function __construct(?array $rules = null)
+    {
+        $this->rules = $rules ?? [
+            new CorporateEmailRule(),
+            new SpPhoneRule(),
+            new FullNameRule(),
+        ];
+    }
+
     public function calculate(string $name, Email $email, Phone $phone): int
     {
         $score = 0;
 
-        // 1. E-mail corporativo 
-        if ($email->isCorporate()) {
-            $score += 20;
-        }
-
-        // 2. E-mail com domínio .br 
-        if ($email->isBr()) {
-            $score += 10;
-        }
-
-        // 3. Nome completo (mais de uma palavra) 
-        $nameParts = array_filter(explode(' ', trim($name)));
-        if (count($nameParts) > 1) {
-            $score += 10;
-        }
-
-        // 4. Telefone com DDD de São Paulo (11 a 19) 
-        if ($phone->isSaoPaulo()) {
-            $score += 20;
+        foreach ($this->rules as $rule) {
+            $score += $rule->calculate($name, $email, $phone);
         }
 
         return $score;
