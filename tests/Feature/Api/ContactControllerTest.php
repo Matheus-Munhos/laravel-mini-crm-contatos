@@ -69,8 +69,8 @@ class ContactControllerTest extends TestCase
 
         $response->assertStatus(204);
 
-        $this->assertDatabaseMissing('contacts', [
-            'id' => $contact->id,
-        ]);
+       $this->assertSoftDeleted('contacts', [
+    'id' => $contact->id,
+]);
     }
 }

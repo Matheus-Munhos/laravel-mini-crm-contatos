@@ -2,6 +2,7 @@
 
 namespace App\Domain\Contacts\Services;
 
+use App\Domain\Contacts\Services\Rules\BrazilianDomainRule;
 use App\Domain\Contacts\Services\Rules\CorporateEmailRule;
 use App\Domain\Contacts\Services\Rules\FullNameRule;
 use App\Domain\Contacts\Services\Rules\ScoreRuleInterface;
@@ -20,6 +21,7 @@ class ScoreCalculator
     {
         $this->rules = $rules ?? [
             new CorporateEmailRule(),
+            new BrazilianDomainRule(),
             new SpPhoneRule(),
             new FullNameRule(),
         ];

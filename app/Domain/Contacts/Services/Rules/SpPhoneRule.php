@@ -9,6 +9,12 @@ class SpPhoneRule implements ScoreRuleInterface
 {
     public function calculate(string $name, Email $email, Phone $phone): int
     {
-        return $phone->isFromSaoPaulo() ? 20 : 0;
+        // +20 pontos: DDD de São Paulo (11 a 19)
+        if ($phone->isSaoPaulo()) {
+            return 20;
+        }
+
+        // +10 pontos: Outros estados válidos
+        return 10;
     }
 }

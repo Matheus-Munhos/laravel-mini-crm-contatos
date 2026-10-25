@@ -9,7 +9,8 @@ class FullNameRule implements ScoreRuleInterface
 {
     public function calculate(string $name, Email $email, Phone $phone): int
     {
-        $parts = explode(' ', trim($name));
-        return count($parts) >= 2 ? 20 : 0;
+        $words = preg_split('/\s+/', trim($name));
+
+        return count($words) > 1 ? 10 : 0;
     }
 }

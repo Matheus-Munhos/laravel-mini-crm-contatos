@@ -9,6 +9,6 @@ class BrazilianDomainRule implements ScoreRuleInterface
 {
     public function calculate(string $name, Email $email, Phone $phone): int
     {
-        return str_ends_with(strtolower($email->getValue()), '.br') ? 20 : 0;
+        return $email->isBr() ? 10 : 0;
     }
 }
