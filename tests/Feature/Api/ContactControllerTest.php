@@ -73,4 +73,32 @@ class ContactControllerTest extends TestCase
     'id' => $contact->id,
 ]);
     }
+
+    public function test_pode_enfileirar_processamento_de_score(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+
+        $contact = \App\Models\Contact::create([
+            'name' => 'Carlos Silva',
+            'email' => 'carlos@empresa.com.br',
+            'phone' => '11988887777',
+            'score' => 0,
+            'status' => 'pending',
+        ]);
+
+        $response = $this->postJson("/api/contacts/{$contact->id}/process-score");
+
+        $response->assertStatus(202)
+            ->assertJson([
+                'contact_id' => $contact->id,
+                'status' => 'queued',
+            ]);
+
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\ProcessContactScore::class, function ($job) use ($contact) {
+            return $job->contactId === $contact->id;
+        });
+    }
+
+
+
 }
