@@ -2,6 +2,8 @@
 
 namespace App\Domain\Contacts\UseCases;
 
+use App\Events\ContactCreatedEvent;
+use App\Jobs\ProcessContactScore;
 use App\Domain\Contacts\Repositories\ContactRepositoryInterface;
 use App\Domain\Contacts\Services\ScoreCalculator;
 use App\Domain\Contacts\ValueObjects\Email;
@@ -21,12 +23,16 @@ class CreateContactUseCase
         $phone = new Phone($data['phone']);
 
         $score = $this->scoreCalculator->calculate($data['name'], $email, $phone);
-
-        return $this->repository->create([
+        $contact = $this->repository->create([
             'name' => $data['name'],
             'email' => $email->getValue(),
             'phone' => $phone->getValue(),
             'score' => $score,
         ]);
+
+        ProcessContactScore::dispatch($contact);
+        ContactCreatedEvent::dispatch($contact);
+
+        return $contact;
     }
 }
