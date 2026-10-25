@@ -6,29 +6,29 @@ API em Laravel desenvolvida para gestão e qualificação de contatos (leads). O
 
 ## Como estruturei o cálculo do Score
 
-O contato é registrado inicialmente com score 0 e status "pending"[cite: 7]. Quando o cálculo assíncrono é disparado[cite: 7], a pontuação acumula até 60 pontos a partir das seguintes condições[cite: 7]:
+O contato é registrado inicialmente com score 0 e status "pending". Quando o cálculo assíncrono é disparado, a pontuação acumula até 60 pontos a partir das seguintes condições:
 
-- +20 pontos: E-mail corporativo (domínios privados, ignorando provedores públicos como Gmail, Hotmail, etc.)[cite: 7].
-- +10 pontos: Domínio de e-mail brasileiro (.br)[cite: 7].
+- +20 pontos: E-mail corporativo (domínios privados, ignorando provedores públicos como Gmail, Hotmail, etc.).
+- +10 pontos: Domínio de e-mail brasileiro (.br).
 - +20 pontos: Telefone com código de área (DDD) do estado de São Paulo (11 a 19).
 - +10 pontos: Telefone com código de área (DDD) de outros estados.
-- +10 pontos: Nome completo (validação de nome e sobrenome)[cite: 7].
+- +10 pontos: Nome completo (validação de nome e sobrenome).
 
 ---
 
 ## Arquitetura do Projeto
 
-Para garantir que a regra de negócio do Score ficasse totalmente independente de banco de dados ou de decisões de framework, apliquei conceitos de Clean Architecture e DDD[cite: 8]:
+Para garantir que a regra de negócio do Score ficasse totalmente independente de banco de dados ou de decisões de framework, apliquei conceitos de Clean Architecture e DDD:
 
-- Strategy Pattern: Isolei as regras de pontuação em classes dedicadas (CorporateEmailRule, BrazilianDomainRule, SpPhoneRule, FullNameRule)[cite: 7, 9], orquestradas pelo ScoreCalculator[cite: 14]. Novas regras podem ser adicionadas sem alterar as já existentes.
-- Value Objects: Criei classes específicas para encapsular a validação e integridade de Email e Phone[cite: 8].
+- Strategy Pattern: Isolei as regras de pontuação em classes dedicadas (CorporateEmailRule, BrazilianDomainRule, SpPhoneRule, FullNameRule), orquestradas pelo ScoreCalculator. Novas regras podem ser adicionadas sem alterar as já existentes.
+- Value Objects: Criei classes específicas para encapsular a validação e integridade de Email e Phone.
 - Domain Service: A lógica do cálculo do Score fica isolada na classe ScoreCalculator, facilitando testes unitários sem mockar banco.
-- Use Cases: Centralizam as ações de negócio de criar (CreateContactUseCase) e atualizar (UpdateContactUseCase) contatos[cite: 14].
-- Repository Pattern: O controller conversa apenas com a interface ContactRepositoryInterface, mantendo o Eloquent desacoplado na camada de infraestrutura[cite: 8, 14].
-- Observers: Utilizei o ContactObserver para garantir a sanitização automática do telefone no evento de persistência (saving)[cite: 11].
-- Queues & WebSockets: O processamento do score é despachado via job (ProcessContactScore) em fila Redis com simulação de carga, atualizando status para "processing" e depois "active" com timestamp (processed_at)[cite: 1]. Ao concluir, dispara o evento ContactScoreProcessed via Laravel Reverb no canal individual do contato (contacts.{id})[cite: 1, 8].
-- Listeners & Logs: O listener LogContactScoreProcessed registra a alteração do contato em storage/logs/contact.log[cite: 1, 8].
-- TDD: Escrevi testes unitários para a regra do score e testes de integração cobrindo todas as rotas da API, enfileiramento do job e soft deletes[cite: 6, 7, 9].
+- Use Cases: Centralizam as ações de negócio de criar (CreateContactUseCase) e atualizar (UpdateContactUseCase) contatos.
+- Repository Pattern: O controller conversa apenas com a interface ContactRepositoryInterface, mantendo o Eloquent desacoplado na camada de infraestrutura.
+- Observers: Utilizei o ContactObserver para garantir a sanitização automática do telefone no evento de persistência (saving).
+- Queues & WebSockets: O processamento do score é despachado via job (ProcessContactScore) em fila Redis com simulação de carga, atualizando status para "processing" e depois "active" com timestamp (processed_at). Ao concluir, dispara o evento ContactScoreProcessed via Laravel Reverb no canal individual do contato (contacts.{id}).
+- Listeners & Logs: O listener LogContactScoreProcessed registra a alteração do contato em storage/logs/contact.log.
+- TDD: Escrevi testes unitários para a regra do score e testes de integração cobrindo todas as rotas da API, enfileiramento do job e soft deletes.
 
 ---
 
@@ -159,9 +159,9 @@ php artisan test --filter=test_pode_enfileirar_processamento_de_score
 
 ## Rotas disponíveis (/api/contacts)
 
-- GET /api/contacts -> Retorna a lista de contatos (com paginação)[cite: 7]
-- POST /api/contacts -> Cria o contato (inicia com score 0 e status pending)[cite: 7]
-- GET /api/contacts/{id} -> Exibe um contato específico[cite: 7]
-- PUT /api/contacts/{id} -> Atualiza o contato e recalcula os dados[cite: 7]
-- DELETE /api/contacts/{id} -> Remove o contato (soft delete)[cite: 6, 7]
-- POST /api/contacts/{id}/process-score -> Enfileira o cálculo assíncrono do score do contato (retorna HTTP 202)[cite: 7]
+- GET /api/contacts -> Retorna a lista de contatos (com paginação)
+- POST /api/contacts -> Cria o contato (inicia com score 0 e status pending)
+- GET /api/contacts/{id} -> Exibe um contato específico
+- PUT /api/contacts/{id} -> Atualiza o contato e recalcula os dados
+- DELETE /api/contacts/{id} -> Remove o contato (soft delete)
+- POST /api/contacts/{id}/process-score -> Enfileira o cálculo assíncrono do score do contato (retorna HTTP 202)
